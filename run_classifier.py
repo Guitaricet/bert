@@ -714,7 +714,7 @@ def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
         predictions = tf.argmax(logits, axis=-1, output_type=tf.int32)
         accuracy = tf.metrics.accuracy(label_ids, predictions)
         loss = tf.metrics.mean(per_example_loss)
-        f1 = tf_metrics.f1(label_ids, predictions, average='macro')
+        f1 = tf_metrics.f1(label_ids, predictions, average='macro', num_classes=5)
         return {
             "eval_accuracy": accuracy,
             "eval_loss": loss,
