@@ -25,6 +25,7 @@ import modeling
 import optimization
 import tokenization
 import tensorflow as tf
+import tf_metrics
 
 flags = tf.flags
 
@@ -713,9 +714,11 @@ def model_fn_builder(bert_config, num_labels, init_checkpoint, learning_rate,
         predictions = tf.argmax(logits, axis=-1, output_type=tf.int32)
         accuracy = tf.metrics.accuracy(label_ids, predictions)
         loss = tf.metrics.mean(per_example_loss)
+        f1 = tf_metrics.f1(label_ids, predictions, average='macro')
         return {
             "eval_accuracy": accuracy,
             "eval_loss": loss,
+            "f1": f1,
         }
 
       eval_metrics = (metric_fn, [per_example_loss, label_ids, logits])
