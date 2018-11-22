@@ -197,7 +197,7 @@ class RusentimentProcessor(DataProcessor):
     return self._get_examples(data_dir, "test.csv", "test")
 
   def get_labels(self):
-    return ["neutral", "negative", "positive", "skip"]
+    return ["neutral", "negative", "positive", "skip", "speech"]
   
   def _get_examples(self, data_dir, filename, set_type):
     df = pd.read_csv(os.path.join(data_dir, filename))
