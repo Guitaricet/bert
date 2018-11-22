@@ -175,14 +175,80 @@ class DataProcessor(object):
     raise NotImplementedError()
 
   @classmethod
-  def _read_tsv(cls, input_file, quotechar=None):
+  def _read_tsv(cls, input_file, delimiter='\t', quotechar=None):
     """Reads a tab separated value file."""
     with tf.gfile.Open(input_file, "r") as f:
-      reader = csv.reader(f, delimiter="\t", quotechar=quotechar)
+      reader = csv.reader(f, delimiter=delimiter, quotechar=quotechar)
       lines = []
       for line in reader:
         lines.append(line)
       return lines
+
+import pandas as pd
+
+class RusentimentProcessor(DataProcessor):
+  def get_train_examples(self, data_dir):
+    return self._get_examples(data_dir, "train")
+  
+  def get_dev_examples(self, data_dir):
+    return self._get_examples(data_dir, "valid")
+  
+  def get_test_examples(self, data_dir):
+    return self._get_examples(data_dir, "test")
+
+  def get_labels(self):
+    return ["neutral", "negative", "positive", "skip"]
+  
+  def _get_examples(self, data_dir, set_type):
+    df = pd.read_csv(data_dir)
+    x_name = "text"
+    y_name = "label"
+    
+    examples = []
+    for i, line in df.iterrows():
+      guid = "%s-%s" % (set_type, tokenization.convert_to_unicode(line[x_name]))
+      text_a = line[x_name]
+      label = line[y_name]
+      examples.append(
+        InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
+    return examples
+  
+
+class YahooAnswersProcessor(DataProcessor):
+  """Processor for the YahooAnswers - L31 data set."""
+
+  def get_train_examples(self, data_dir):
+    """See base class."""
+    return self._create_examples(
+        self._read_csv(os.path.join(data_dir, "train.csv")), "train")
+
+  def get_dev_examples(self, data_dir):
+    """See base class."""
+    return self._create_examples(
+        self._read_csv(os.path.join(data_dir, "valid.csv")), "valid")
+
+  def _read_csv(self, file_path):
+      df = pd.read_csv(file_path)
+      x = "Title"
+      y = "Label"
+      return [(row[x], str(row[y])) for _, row in df.iterrows()]
+
+  def get_labels(self):
+    """See base class."""
+    return ["0", "1"]
+
+  def _create_examples(self, lines, set_type):
+    """Creates examples for the training and dev sets."""
+    examples = []
+    for (i, line) in enumerate(lines):
+      if i == 0:
+        continue
+      guid = "%s-%s" % (set_type, tokenization.convert_to_unicode(line[0]))
+      text_a = line[0]
+      label = line[1]
+      examples.append(
+          InputExample(guid=guid, text_a=text_a, text_b=None, label=label))
+    return examples
 
 
 class XnliProcessor(DataProcessor):
@@ -746,6 +812,8 @@ def main(_):
       "mnli": MnliProcessor,
       "mrpc": MrpcProcessor,
       "xnli": XnliProcessor,
+      "rusentiment": RusentimentProcessor,
+      "yahoo": YahooAnswersProcessor,
   }
 
   if not FLAGS.do_train and not FLAGS.do_eval and not FLAGS.do_predict:
