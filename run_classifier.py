@@ -188,19 +188,19 @@ import pandas as pd
 
 class RusentimentProcessor(DataProcessor):
   def get_train_examples(self, data_dir):
-    return self._get_examples(data_dir, "train")
+    return self._get_examples(data_dir, "train.csv", "train")
   
   def get_dev_examples(self, data_dir):
-    return self._get_examples(data_dir, "valid")
+    return self._get_examples(data_dir, "validation.csv", "valid")
   
   def get_test_examples(self, data_dir):
-    return self._get_examples(data_dir, "test")
+    return self._get_examples(data_dir, "test.csv", "test")
 
   def get_labels(self):
     return ["neutral", "negative", "positive", "skip"]
   
-  def _get_examples(self, data_dir, set_type):
-    df = pd.read_csv(data_dir)
+  def _get_examples(self, data_dir, filename, set_type):
+    df = pd.read_csv(os.path.join(data_dir, filename))
     x_name = "text"
     y_name = "label"
     
